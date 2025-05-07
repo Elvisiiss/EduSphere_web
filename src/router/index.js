@@ -9,9 +9,9 @@ const routes = [
             if (!authStore.isAuthenticated) return '/login'
 
             switch (authStore.user?.role_id) {
-                case 0: return '/student'
-                case 1: return '/teacher'
-                case 2: return '/admin'
+                case 1: return '/student'
+                case 2: return '/teacher'
+                case 3: return '/admin'
                 default: return '/login'
             }
         }
@@ -38,19 +38,19 @@ const routes = [
         path: '/student',
         name: 'StudentDashboard',
         component: () => import('@/views/Student/Dashboard.vue'),
-        meta: { requiresAuth: true, allowedRoles: [0, 1, 2] }
+        meta: { requiresAuth: true, allowedRoles: [1, 2, 3] }
     },
     {
         path: '/teacher',
         name: 'TeacherDashboard',
         component: () => import('@/views/Teacher/Dashboard.vue'),
-        meta: { requiresAuth: true, allowedRoles: [1, 2] }
+        meta: { requiresAuth: true, allowedRoles: [2, 3] }
     },
     {
         path: '/admin',
         name: 'AdminDashboard',
         component: () => import('@/views/Admin/Dashboard.vue'),
-        meta: { requiresAuth: true, allowedRoles: [2] }
+        meta: { requiresAuth: true, allowedRoles: [3] }
     },
     // 捕获所有未匹配的路由
     {
@@ -60,9 +60,9 @@ const routes = [
             if (!authStore.isAuthenticated) return '/login'
 
             switch (authStore.user?.role_id) {
-                case 0: return '/student'
-                case 1: return '/teacher'
-                case 2: return '/admin'
+                case 1: return '/student'
+                case 2: return '/teacher'
+                case 3: return '/admin'
                 default: return '/login'
             }
         }
@@ -88,9 +88,9 @@ router.beforeEach((to, from, next) => {
         if (!userRole || !to.meta.allowedRoles.includes(userRole)) {
             // 根据用户角色重定向到合适的仪表盘
             switch (userRole) {
-                case 0: return next('/student')
-                case 1: return next('/teacher')
-                case 2: return next('/admin')
+                case 1: return next('/student')
+                case 2: return next('/teacher')
+                case 3: return next('/admin')
                 default: return next('/login')
             }
         }

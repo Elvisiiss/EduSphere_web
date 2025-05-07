@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE_URL = 'http://localhost:8080/api/user'
+const API_BASE_URL = 'http://localhost:8080/api'
 
 export default {
     // 获取用户数据
@@ -14,16 +14,24 @@ export default {
 
     // 更新用户信息
     updateUser(userId, data) {
-        return axios.put(`${API_BASE_URL}/users/${userId}`, data)
+        return axios.put(`${API_BASE_URL}/admin/users/${userId}`, data)
     },
 
     // 获取所有用户列表（管理员专用）
-    getAllUsers() {
-        return axios.get(`${API_BASE_URL}/users`)
+    getAllUser() {
+        return axios.get(`${API_BASE_URL}/admin/users`)
+    },
+
+    getAllUsers(data) {
+        return axios.post(`${API_BASE_URL}/admin/users`, {
+            msg: "获取所有用户",
+            e_mail: data.email,
+            user_name: !data.includes('@') ? data : null
+        })
     },
 
     // 删除用户（管理员专用）
     deleteUser(userId) {
-        return axios.delete(`${API_BASE_URL}/users/${userId}`)
+        return axios.delete(`${API_BASE_URL}/user-delete/users/${userId}`)
     }
 }

@@ -28,23 +28,23 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     function isStudent() {
-        return user.value?.role_id === 0
-    }
-
-    function isTeacher() {
         return user.value?.role_id === 1
     }
 
-    function isAdmin() {
+    function isTeacher() {
         return user.value?.role_id === 2
     }
 
+    function isAdmin() {
+        return user.value?.role_id === 3
+    }
+
     function redirectBasedOnRole() {
-        if (isAdmin()) {
+        if (isStudent()) {
             router.push('/admin')
         } else if (isTeacher()) {
             router.push('/teacher')
-        } else if (isStudent()) {
+        } else if (isAdmin()) {
             router.push('/student')
         } else {
             router.push('/login')

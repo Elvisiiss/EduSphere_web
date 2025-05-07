@@ -63,7 +63,7 @@ export default function useAuth() {
         error.value = null
         try {
             // 1. 发送验证码
-            await authApi.sendResetPasswordCode(resetData.email)
+            // await authApi.sendResetPasswordCode(resetData.email)
 
             // 2. 验证验证码并重置密码
             await authApi.verifyResetPasswordCode(resetData)

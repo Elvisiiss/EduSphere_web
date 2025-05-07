@@ -40,6 +40,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import useAuth from '@/composables/useAuth'
+import auth from "@/api/auth.js";
 
 const email = ref('')
 const password = ref('')
@@ -57,7 +58,7 @@ const validatePassword = () => {
 
 const sendCode = async () => {
   try {
-    await authApi.sendResetPasswordCode(email.value)
+    await auth.sendResetPasswordCode(email.value)
     showCodeField.value = true
   } catch (err) {
     error.value = err.response?.data?.msg || '发送验证码失败'

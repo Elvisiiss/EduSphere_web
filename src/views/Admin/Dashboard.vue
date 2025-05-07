@@ -54,9 +54,9 @@ const users = ref([])
 
 const getRoleName = (roleId) => {
   switch (roleId) {
-    case 0: return '学生'
-    case 1: return '教师'
-    case 2: return '管理员'
+    case 1: return '学生'
+    case 2: return '教师'
+    case 3: return '管理员'
     default: return '未知'
   }
 }
