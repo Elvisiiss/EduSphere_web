@@ -1,6 +1,6 @@
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+import {ref} from 'vue'
+import {useRouter} from 'vue-router'
+import {useAuthStore} from '@/stores/auth'
 import authApi from '@/api/auth'
 
 export default function useAuth() {
@@ -23,8 +23,16 @@ export default function useAuth() {
 
             authStore.setUser(response.data)
 
-            // 根据角色重定向
-            redirectBasedOnRole(response.data.role_id)
+            // 根据权限重定向
+            if (response.data.powers_id.includes(3)) {
+                router.push('/admin')
+            } else if (response.data.powers_id.includes(2)) {
+                router.push('/teacher')
+            } else if (response.data.powers_id.includes(1)) {
+                router.push('/student')
+            } else {
+                router.push('/login')
+            }
         } catch (err) {
             error.value = err.response?.data?.msg || '登录失败'
         } finally {
@@ -62,13 +70,10 @@ export default function useAuth() {
         loading.value = true
         error.value = null
         try {
-            // 1. 发送验证码
-            // await authApi.sendResetPasswordCode(resetData.email)
-
-            // 2. 验证验证码并重置密码
+            // 1. 验证验证码并重置密码
             await authApi.verifyResetPasswordCode(resetData)
 
-            // 3. 自动登录
+            // 2. 自动登录
             await login({
                 type: 'password',
                 status: 1,
@@ -89,19 +94,15 @@ export default function useAuth() {
     }
 
     // 根据角色重定向
-    const redirectBasedOnRole = (roleId) => {
-        switch (roleId) {
-            case 0: // 学生
-                router.push('/student')
-                break
-            case 1: // 教师
-                router.push('/teacher')
-                break
-            case 2: // 管理员
-                router.push('/admin')
-                break
-            default:
-                router.push('/login')
+    const redirectBasedOnRole = (powers_id) => {
+        if (powers_id.includes(3)) {
+            router.push('/admin')
+        } else if (powers_id.includes(2)) {
+            router.push('/teacher')
+        } else if (powers_id.includes(1)) {
+            router.push('/student')
+        } else {
+            router.push('/login')
         }
     }
 

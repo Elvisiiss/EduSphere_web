@@ -7,10 +7,14 @@ export const useAuthStore = defineStore('auth', () => {
     const isAuthenticated = ref(false)
 
     function setUser(userData) {
-        user.value = userData
+        user.value = {
+            token: userData.user_token,
+            name: userData.user_name,
+            e_mail: userData.user_email,
+            powers: userData.powers_id
+        }
         isAuthenticated.value = true
-        // 保存到localStorage
-        localStorage.setItem('user', JSON.stringify(userData))
+        localStorage.setItem('user', JSON.stringify(user.value))
     }
 
     function clearUser() {
@@ -28,23 +32,23 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     function isStudent() {
-        return user.value?.role_id === 1
+        return user.value?.powers.includes(1)
     }
 
     function isTeacher() {
-        return user.value?.role_id === 2
+        return user.value?.powers.includes(2)
     }
 
     function isAdmin() {
-        return user.value?.role_id === 3
+        return user.value?.powers.includes(3)
     }
 
     function redirectBasedOnRole() {
-        if (isStudent()) {
+        if (isAdmin()) {
             router.push('/admin')
         } else if (isTeacher()) {
             router.push('/teacher')
-        } else if (isAdmin()) {
+        } else if (isStudent()) {
             router.push('/student')
         } else {
             router.push('/login')

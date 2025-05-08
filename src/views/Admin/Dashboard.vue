@@ -1,7 +1,7 @@
 <template>
   <div class="admin-dashboard">
     <h1>管理员仪表盘</h1>
-    <p>欢迎, {{ authStore.user?.user_name }}</p>
+    <p>欢迎, {{ authStore.user?.name }}</p>
     <p>邮箱: {{ authStore.user?.e_mail }}</p>
     <p>角色: 管理员</p>
 
@@ -25,10 +25,10 @@
         </thead>
         <tbody>
         <tr v-for="user in users" :key="user.id">
-          <td>{{ user.id }}</td>
+          <td>{{ user.user_id }}</td>
           <td>{{ user.user_name }}</td>
-          <td>{{ user.e_mail }}</td>
-          <td>{{ getRoleName(user.role_id) }}</td>
+          <td>{{ user.user_email }}</td>
+          <td>{{ user.user_roles }}</td>
           <td>
             <button @click="editUser(user)" class="edit-btn">编辑</button>
             <button @click="deleteUser(user.id)" class="delete-btn">删除</button>
@@ -52,18 +52,14 @@ const authStore = useAuthStore()
 const router = useRouter()
 const users = ref([])
 
-const getRoleName = (roleId) => {
-  switch (roleId) {
-    case 1: return '学生'
-    case 2: return '教师'
-    case 3: return '管理员'
-    default: return '未知'
-  }
-}
-
 const viewUsers = async () => {
   try {
-    const response = await userApi.getAllUsers()
+    const token = authStore.user?.token
+    if (!token) {
+      console.error('未找到用户token')
+      return
+    }
+    const response = await userApi.getAllUsers(token)
     users.value = response.data
   } catch (error) {
     console.error('获取用户列表失败:', error)
@@ -78,7 +74,7 @@ const goToStudent = () => {
   router.push('/student')
 }
 
-const editUser = (user) => {
+const editUser = (token,user) => {
   // 实现编辑用户逻辑
   console.log('编辑用户:', user)
 }
@@ -86,7 +82,8 @@ const editUser = (user) => {
 const deleteUser = async (userId) => {
   if (confirm('确定要删除这个用户吗？')) {
     try {
-      await userApi.deleteUser(userId)
+      const token = authStore.user?.token
+      await userApi.deleteUser(token, userId)
       users.value = users.value.filter(user => user.id !== userId)
     } catch (error) {
       console.error('删除用户失败:', error)

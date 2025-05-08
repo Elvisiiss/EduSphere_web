@@ -10,28 +10,28 @@
         <div class="form-group">
           <label>登录方式</label>
           <select v-model="loginType" class="form-control">
-            <option value="username">用户名登录</option>
-            <option value="email">邮箱登录</option>
-            <option value="code">验证码登录</option>
+            <option value="username_password_login">用户名登录</option>
+            <option value="email_password_login">邮箱登录</option>
+            <option value="verification_codes_login">验证码登录</option>
           </select>
         </div>
 
-        <div class="form-group" v-if="loginType === 'username'">
+        <div class="form-group" v-if="loginType === 'username_password_login'">
           <label>用户名</label>
           <input v-model="account" type="text" class="form-control" placeholder="请输入用户名" required>
         </div>
 
-        <div class="form-group" v-if="loginType === 'email' || loginType === 'code'">
+        <div class="form-group" v-if="loginType === 'email_password_login' || loginType === 'verification_codes_login'">
           <label>邮箱</label>
           <input v-model="account" type="email" class="form-control" placeholder="请输入邮箱地址" required>
         </div>
 
-        <div class="form-group" v-if="loginType === 'username' || loginType === 'email'">
+        <div class="form-group" v-if="loginType === 'username_password_login' || loginType === 'email_password_login'">
           <label>密码</label>
           <input v-model="password" type="password" class="form-control" placeholder="请输入密码" required>
         </div>
 
-        <div class="form-group" v-if="loginType === 'code'">
+        <div class="form-group" v-if="loginType === 'verification_codes_login'">
           <label>验证码</label>
           <div class="code-input-group">
             <input v-model="code" type="text" class="form-control" placeholder="请输入验证码" required>
@@ -70,8 +70,9 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import authApi from '@/api/auth'
+import { useStorage } from '@vueuse/core'
 
-const loginType = ref('username')
+const loginType = ref('username_password_login')
 const account = ref('')
 const password = ref('')
 const code = ref('')
@@ -81,6 +82,20 @@ const errorMessage = ref('')
 const isLoading = ref(false)
 const router = useRouter()
 const authStore = useAuthStore()
+
+const token = useStorage('user_token', null, undefined, {
+  serializer: {
+    read: (v) => {
+      if (!v) return null;
+      try {
+        return JSON.parse(v);
+      } catch (e) {
+        return null; // 或者返回默认值
+      }
+    },
+    write: (v) => JSON.stringify(v)
+  }
+})
 
 const sendCode = async () => {
   if (!account.value.includes('@')) {
@@ -114,19 +129,19 @@ const handleSubmit = async () => {
 
   try {
     let response
-    if (loginType.value === 'username') {
+    if (loginType.value === 'username_password_login') {
       response = await authApi.loginWithPassword({
-        status: 0, // 0 for username
+        status: 0,
         account: account.value,
         password: password.value
       })
-    } else if (loginType.value === 'email') {
+    } else if (loginType.value === 'email_password_login') {
       response = await authApi.loginWithPassword({
-        status: 1, // 1 for email
+        status: 1,
         account: account.value,
         password: password.value
       })
-    } else {
+    } else if (loginType.value === 'verification_codes_login') {
       response = await authApi.loginWithCode({
         email: account.value,
         code: code.value
@@ -135,15 +150,17 @@ const handleSubmit = async () => {
 
     authStore.setUser(response.data)
 
-    // 根据角色跳转到不同页面
-    if (response.data.role_id === 1) {
-      router.push('/student')
-    } else if (response.data.role_id === 2) {
-      router.push('/teacher')
-    } else if (response.data.role_id === 3) {
+    const powers = response.data.powers_id
+    if (powers.includes(3)) {
       router.push('/admin')
+    } else if (powers.includes(2)) {
+      router.push('/teacher')
+    } else if (powers.includes(1)) {
+      router.push('/student')
     } else {
-      router.push('/login')
+      // 处理无权限情况
+      authStore.clearUser()
+      errorMessage.value = '您的账号没有访问权限'
     }
   } catch (error) {
     errorMessage.value = error.response?.data?.msg || '登录失败，请检查您的账号和密码'
@@ -152,6 +169,7 @@ const handleSubmit = async () => {
   }
 }
 </script>
+
 
 <style scoped>
 .login-wrapper {

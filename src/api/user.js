@@ -18,20 +18,17 @@ export default {
     },
 
     // 获取所有用户列表（管理员专用）
-    getAllUser() {
-        return axios.get(`${API_BASE_URL}/admin/users`)
-    },
-
-    getAllUsers(data) {
-        return axios.post(`${API_BASE_URL}/admin/users`, {
+    getAllUsers(token) {
+        return axios.post(`${API_BASE_URL}/admin/get_all_users_info`, {
             msg: "获取所有用户",
-            e_mail: data.email,
-            user_name: !data.includes('@') ? data : null
+            user_token: token
         })
     },
 
     // 删除用户（管理员专用）
-    deleteUser(userId) {
-        return axios.delete(`${API_BASE_URL}/user-delete/users/${userId}`)
+    deleteUser(token, user_id) {
+        return axios.post(`${API_BASE_URL}/user-delete/users/${user_id}`, {
+            token: token
+        })
     }
 }

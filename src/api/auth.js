@@ -66,13 +66,4 @@ export default {
             mail_code: data.code
         })
     },
-
-    // 获取用户数据
-    getUserData(identifier) {
-        return axios.post(`${API_BASE_URL}/get-data`, {
-            msg: "获取数据",
-            e_mail: identifier.includes('@') ? identifier : null,
-            user_name: !identifier.includes('@') ? identifier : null
-        })
-    }
 }
