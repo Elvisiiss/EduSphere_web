@@ -10,15 +10,15 @@
         <div class="form-group">
           <label>登录方式</label>
           <select v-model="loginType" class="form-control">
-            <option value="username_password_login">用户名登录</option>
+            <option value="user_number_password_login">学号登录</option>
             <option value="email_password_login">邮箱登录</option>
             <option value="verification_codes_login">验证码登录</option>
           </select>
         </div>
 
-        <div class="form-group" v-if="loginType === 'username_password_login'">
-          <label>用户名</label>
-          <input v-model="account" type="text" class="form-control" placeholder="请输入用户名" required>
+        <div class="form-group" v-if="loginType === 'user_number_password_login'">
+          <label>学号</label>
+          <input v-model="account" type="text" class="form-control" placeholder="请输入学号" required>
         </div>
 
         <div class="form-group" v-if="loginType === 'email_password_login' || loginType === 'verification_codes_login'">
@@ -26,7 +26,7 @@
           <input v-model="account" type="email" class="form-control" placeholder="请输入邮箱地址" required>
         </div>
 
-        <div class="form-group" v-if="loginType === 'username_password_login' || loginType === 'email_password_login'">
+        <div class="form-group" v-if="loginType === 'user_number_password_login' || loginType === 'email_password_login'">
           <label>密码</label>
           <input v-model="password" type="password" class="form-control" placeholder="请输入密码" required>
         </div>
@@ -72,7 +72,7 @@ import { useAuthStore } from '@/stores/auth'
 import authApi from '@/api/auth'
 import { useStorage } from '@vueuse/core'
 
-const loginType = ref('username_password_login')
+const loginType = ref('user_number_password_login')
 const account = ref('')
 const password = ref('')
 const code = ref('')
@@ -90,7 +90,7 @@ const token = useStorage('user_token', null, undefined, {
       try {
         return JSON.parse(v);
       } catch (e) {
-        return null; // 或者返回默认值
+        return null;
       }
     },
     write: (v) => JSON.stringify(v)
@@ -129,7 +129,7 @@ const handleSubmit = async () => {
 
   try {
     let response
-    if (loginType.value === 'username_password_login') {
+    if (loginType.value === 'user_number_password_login') {
       response = await authApi.loginWithPassword({
         status: 0,
         account: account.value,
