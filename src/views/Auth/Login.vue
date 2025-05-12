@@ -231,6 +231,7 @@ const handleSubmit = async () => {
   border-radius: 8px;
   font-size: 14px;
   transition: border-color 0.3s;
+  box-sizing: border-box;
 }
 
 .form-control:focus {

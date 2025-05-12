@@ -1,176 +1,112 @@
 <template>
-  <div class="admin-dashboard">
-    <h1>管理员仪表盘</h1>
-    <p>欢迎, {{ authStore.user?.name }}</p>
-    <p>邮箱: {{ authStore.user?.e_mail }}</p>
-    <p>角色: 管理员</p>
+  <div class="dashboard-container">
+    <!-- 侧边栏 -->
+    <div class="sidebar" :class="{ 'sidebar-collapsed': isCollapsed }">
+      <button class="toggle-btn" @click="toggleSidebar">
+        {{ isCollapsed ? '展开边栏' : '收起边栏' }}
+      </button>
 
-    <div class="admin-actions">
-      <button @click="viewUsers" class="action-btn">用户管理</button>
-      <button @click="goToTeacher" class="action-btn">教师面板</button>
-      <button @click="goToStudent" class="action-btn">学生面板</button>
-    </div>
+      <div class="sidebar-content" v-if="!isCollapsed">
+        <button class="sidebar-btn" @click="setActiveComponent('Welcome')">
+          <i class="icon-home"></i> 仪表盘首页
+        </button>
+        <button class="sidebar-btn" @click="setActiveComponent('UserManagement')">
+          <i class="icon-users"></i> 用户管理
+        </button>
+        <button class="sidebar-btn" @click="setActiveComponent('RoleManagement')">
+          <i class="icon-role"></i> 角色管理
+        </button>
+        <button class="sidebar-btn" @click="setActiveComponent('PowerManagement')">
+          <i class="icon-power"></i> 权限管理
+        </button>
+        <button class="sidebar-btn" @click="setActiveComponent('RoleSwitcher')">
+          <i class="icon-role"></i> 切换角色
+        </button>
+        <button class="sidebar-btn logout-btn" @click="logout">
+          <i class="icon-logout"></i> 退出登录
+        </button>
+      </div>
 
-    <div v-if="users.length > 0" class="user-list">
-      <h2>用户列表</h2>
-      <table>
-        <thead>
-        <tr>
-          <th>ID</th>
-          <th>学号</th>
-          <th>用户名</th>
-          <th>邮箱</th>
-          <th>角色</th>
-          <th>操作</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr v-for="user in users" :key="user.id">
-          <td>{{ user.user_id }}</td>
-          <td>{{ user.user_number }}</td>
-          <td>{{ user.user_name }}</td>
-          <td>{{ user.user_email }}</td>
-          <td>{{ user.user_roles }}</td>
-          <td>
-            <button @click="showEditModal(user)" class="edit-btn">编辑</button>
-            <button @click="deleteUser(user.id)" class="delete-btn">删除</button>
-          </td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- 编辑用户模态框 -->
-    <div v-if="showModal" class="modal">
-      <div class="modal-content">
-        <span class="close" @click="closeModal">&times;</span>
-        <h2>编辑用户</h2>
-        <div class="form-group">
-          <label>用户ID:</label>
-          <input type="text" v-model="currentUser.user_id" disabled>
-        </div>
-        <div class="form-group">
-          <label>用户名:</label>
-          <input type="text" v-model="currentUser.user_name">
-        </div>
-        <div class="form-group">
-          <label>邮箱:</label>
-          <input type="email" v-model="currentUser.user_email">
-        </div>
-        <div class="form-group">
-          <label>密码:</label>
-          <input
-              type="text"
-              v-model="currentUser.user_password"
-              :placeholder="!currentUser.user_password ? '如果内容为空则表示不修改密码' : ''"
-          >
-        </div>
-        <div class="form-group">
-          <label>Token:</label>
-          <input type="text" v-model="currentUser.user_token" disabled>
-        </div>
-        <div class="modal-actions">
-          <button @click="saveUser" class="save-btn">保存</button>
-          <button @click="closeModal" class="cancel-btn">取消</button>
+      <!-- 个人信息按钮 -->
+      <div class="profile-btn-container" @click="setActiveComponent('SetInformation')">
+        <div class="profile-btn">
+          <img :src="userAvatar" class="profile-avatar" @error="handleAvatarError">
+          <span v-if="!isCollapsed" class="profile-text">个人信息</span>
         </div>
       </div>
     </div>
 
-    <button @click="logout" class="logout-btn">退出登录</button>
+    <!-- 主内容区 -->
+    <div class="main-content">
+      <component :is="activeComponent" />
+    </div>
   </div>
 </template>
 
 <script setup>
-import {onMounted, ref} from 'vue'
-import {useRouter} from 'vue-router'
-import {useAuthStore} from '@/stores/auth'
-import adminPower from '@/api/admin.js'
+import { ref, shallowRef, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import myPower from '@/api/user.js'
+
+import Welcome from '@/views/Admin/Welcome.vue'
+import UserManagement from '@/views/Admin/UserManagement.vue'
+import RoleSwitcher from '@/views/Admin/RoleSwitcher.vue'
+import SetInformation from "@/views/User/SetInformation.vue";
+import RoleManagement from '@/views/Admin/RoleManagement.vue'
+import PowerManagement from '@/views/Admin/PowerManagement.vue'
 
 const authStore = useAuthStore()
 const router = useRouter()
-const users = ref([])
-const token = authStore.user?.token
-const showModal = ref(false)
-const currentUser = ref({
-  user_id: '',
-  user_number:'',
-  user_name: '',
-  user_email: '',
-  user_password: '',
-  user_token: ''
-})
 
-const viewUsers = async () => {
+const isCollapsed = ref(true)
+const activeComponent = shallowRef(Welcome)
+const userAvatar = ref('logo.svg')
+
+const fetchUserAvatar = async () => {
   try {
-    if (!token) {
-      console.error('未找到用户token')
-      return
+    const token = authStore.user?.token
+    if (!token) return
+
+    const response = await myPower.getMyInformation(token)
+    if (response.data?.user_profile_picture) {
+      userAvatar.value = response.data.user_profile_picture
     }
-    const response = await adminPower.getAllUsers(token)
-    users.value = response.data
   } catch (error) {
-    console.error('获取用户列表失败:', error)
+    console.error('获取用户头像失败:', error)
   }
 }
 
-const showEditModal = async (user) => {
-  try {
-    const response = await adminPower.getUserByUserId(token, user.user_id)
-    currentUser.value = response
-    console.log(response)
-    showModal.value = true
-    if (response) {
-      currentUser.value = {
-        user_id: response.data.user_id || '',
-        user_number: response.data.user_number || '',
-        user_name: response.data.user_name || '',
-        user_email: response.data.user_email || '',
-        user_password:'',
-        user_token: response.data.user_token || ''
-      };
-      showModal.value = true;
-    }
-  } catch (error) {
-    console.error('获取用户详情失败:', error)
-  }
+const handleAvatarError = () => {
+  userAvatar.value = 'logo.svg'
 }
 
-const closeModal = () => {
-  showModal.value = false
+const toggleSidebar = () => {
+  isCollapsed.value = !isCollapsed.value
 }
 
-const saveUser = async () => {
-  try {
-    await adminPower.updateUser(token, currentUser.value.user_id, currentUser.value.user_number, currentUser.value.user_name, currentUser.value.user_email, currentUser.value.user_password)
-    // 更新本地用户列表
-    const index = users.value.findIndex(u => u.user_id === currentUser.value.user_id)
-    if (index !== -1) {
-      users.value[index].user_number = currentUser.value.user_number
-      users.value[index].user_name = currentUser.value.user_name
-      users.value[index].user_email = currentUser.value.user_email
-    }
-    closeModal()
-  } catch (error) {
-    console.error('更新用户失败:', error)
-  }
-}
-
-const goToTeacher = () => {
-  router.push('/teacher')
-}
-
-const goToStudent = () => {
-  router.push('/student')
-}
-
-const deleteUser = async (userId) => {
-  if (confirm('确定要删除这个用户吗？')) {
-    try {
-      await adminPower.deleteUser(token, userId)
-      users.value = users.value.filter(user => user.id !== userId)
-    } catch (error) {
-      console.error('删除用户失败:', error)
-    }
+const setActiveComponent = (component) => {
+  switch(component) {
+    case 'Welcome':
+      activeComponent.value = Welcome
+      break
+    case 'UserManagement':
+      activeComponent.value = UserManagement
+      break
+    case 'RoleManagement':
+      activeComponent.value = RoleManagement
+      break
+    case 'PowerManagement':
+      activeComponent.value = PowerManagement
+      break
+    case 'RoleSwitcher':
+      activeComponent.value = RoleSwitcher
+      break
+    case 'SetInformation':
+      activeComponent.value = SetInformation
+      break
+    default:
+      activeComponent.value = Welcome
   }
 }
 
@@ -180,158 +116,125 @@ const logout = () => {
 }
 
 onMounted(() => {
-  viewUsers()
+  fetchUserAvatar()
 })
 </script>
 
 <style scoped>
-.admin-dashboard {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 2rem;
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 250px;
+  background-color: #2c3e50;
+  color: white;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   position: relative;
 }
 
-.admin-actions {
-  display: flex;
-  gap: 1rem;
-  margin: 2rem 0;
+.sidebar-collapsed {
+  width: 60px;
 }
 
-.action-btn {
-  padding: 0.75rem 1.5rem;
-  background: #28a745;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.user-list {
-  margin: 2rem 0;
-}
-
-table {
+.toggle-btn {
   width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
+  padding: 10px;
+  background-color: #34495e;
+  color: white;
+  border: none;
+  cursor: pointer;
 }
 
-th, td {
-  border: 1px solid #ddd;
-  padding: 0.75rem;
+.sidebar-content {
+  padding: 20px;
+  flex: 1;
+}
+
+.sidebar-btn {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
   text-align: left;
+  transition: background-color 0.3s;
 }
 
-th {
-  background-color: #f8f9fa;
+.sidebar-btn:hover {
+  background-color: #2980b9;
 }
 
-.edit-btn {
-  padding: 0.25rem 0.5rem;
-  background: #17a2b8;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-right: 0.5rem;
-}
-
-.delete-btn {
-  padding: 0.25rem 0.5rem;
-  background: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+.sidebar-btn i {
+  margin-right: 10px;
 }
 
 .logout-btn {
-  margin-top: 2rem;
-  padding: 0.75rem 1.5rem;
-  background: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+  background-color: #e74c3c;
 }
 
-/* 模态框样式 */
-.modal {
-  display: block;
-  position: fixed;
-  z-index: 1;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.4);
+.logout-btn:hover {
+  background-color: #c0392b;
 }
 
-.modal-content {
-  background-color: #fefefe;
-  margin: 10% auto;
+.main-content {
+  flex: 1;
   padding: 20px;
-  border: 1px solid #888;
-  width: 50%;
-  border-radius: 8px;
-}
-
-.close {
-  color: #aaa;
-  float: right;
-  font-size: 28px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.close:hover {
-  color: black;
-}
-
-.form-group {
-  margin-bottom: 1rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: bold;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.form-group input:disabled {
   background-color: #f5f5f5;
 }
 
-.modal-actions {
+/* 个人信息按钮样式 */
+.profile-btn-container {
+  padding: 10px;
+  cursor: pointer;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background-color 0.3s;
+  margin-top: auto; /* 确保始终位于底部 */
+}
+
+.profile-btn-container:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.profile-btn {
   display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  margin-top: 1rem;
+  align-items: center;
+  gap: 10px;
+  padding: 5px;
 }
 
-.save-btn {
-  padding: 0.5rem 1rem;
-  background: #28a745;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+.profile-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
-.cancel-btn {
-  padding: 0.5rem 1rem;
-  background: #6c757d;
+.profile-text {
+  font-size: 14px;
   color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+}
+
+/* 边栏收起时的样式调整 */
+.sidebar-collapsed .profile-btn-container {
+  padding: 10px 5px;
+  display: flex;
+  justify-content: center;
+}
+
+.sidebar-collapsed .profile-btn {
+  justify-content: center;
+}
+
+.sidebar-collapsed .profile-avatar {
+  margin: 0;
 }
 </style>

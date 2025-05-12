@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE_URL = 'http://localhost:8080/api/user'
+const API_BASE_URL = 'http://localhost:8080/api/auth'
 
 export default {
     // 发送注册验证码
@@ -17,7 +17,7 @@ export default {
             msg: "创建用户确认验证码",
             e_mail: data.email,
             user_name: data.username,
-            passwd: data.password,
+            user_password: data.password,
             mail_code: data.code
         })
     },
@@ -40,12 +40,12 @@ export default {
         })
     },
 
-    // 用户名密码登录
+    // 学号密码登录
     loginWithPassword(data) {
         return axios.post(`${API_BASE_URL}/login/password`, {
-            msg: data.status === 0 ? "登录用户名密码" : "登录邮箱密码",
+            msg: data.status === 0 ? "登录学号密码" : "登录邮箱密码",
             status: data.status,
-            [data.status === 0 ? 'user_name' : 'e_mail']: data.account,
+            [data.status === 0 ? 'user_number' : 'e_mail']: data.account,
             passwd: data.password
         })
     },
