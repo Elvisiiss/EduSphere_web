@@ -19,6 +19,12 @@
         <button class="sidebar-btn" @click="setActiveComponent('PowerManagement')">
           <i class="icon-power"></i> 权限管理
         </button>
+        <button class="sidebar-btn" @click="setActiveComponent('SubjectManagement')">
+          <i class="icon-subject"></i> 科目管理
+        </button>
+        <button class="sidebar-btn" @click="setActiveComponent('ClassesManagement')">
+          <i class="icon-class"></i> 班级管理
+        </button>
         <button class="sidebar-btn" @click="setActiveComponent('RoleSwitcher')">
           <i class="icon-role"></i> 切换角色
         </button>
@@ -51,10 +57,12 @@ import myPower from '@/api/user.js'
 
 import Welcome from '@/views/Admin/Welcome.vue'
 import UserManagement from '@/views/Admin/UserManagement.vue'
-import RoleSwitcher from '@/views/Admin/RoleSwitcher.vue'
+import RoleSwitcher from '@/views/User/RoleSwitcher.vue'
 import SetInformation from "@/views/User/SetInformation.vue";
 import RoleManagement from '@/views/Admin/RoleManagement.vue'
 import PowerManagement from '@/views/Admin/PowerManagement.vue'
+import SubjectManagement from '@/views/Admin/SubjectManagement.vue'
+import ClassesManagement from '@/views/Admin/ClassesManagement.vue'
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -98,6 +106,12 @@ const setActiveComponent = (component) => {
       break
     case 'PowerManagement':
       activeComponent.value = PowerManagement
+      break
+    case 'SubjectManagement':
+      activeComponent.value = SubjectManagement
+      break
+    case 'ClassesManagement':
+      activeComponent.value = ClassesManagement
       break
     case 'RoleSwitcher':
       activeComponent.value = RoleSwitcher

@@ -8,6 +8,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     function setUser(userData) {
         user.value = {
+            user_id: userData.user_id,
             token: userData.user_token,
             name: userData.user_name,
             e_mail: userData.user_email,

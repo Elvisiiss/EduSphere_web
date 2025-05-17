@@ -76,6 +76,24 @@ const routes = [
             if (powers.includes(1)) return '/student'
             return '/login'
         }
+    },
+    {
+        path: '/teacher/class/:classId/scores',
+        name: 'ClassScores',
+        component: () => import('@/views/Teacher/ClassScores.vue'),
+        meta: {
+            requiresAuth: true,
+            requiredPower: 2
+        }
+    },
+    {
+        path: '/teacher/class/:classId/students',
+        name: 'ClassStudents',
+        component: () => import('@/views/Teacher/ClassStudents.vue'),
+        meta: {
+            requiresAuth: true,
+            requiredPower: 2
+        }
     }
 ]
 
