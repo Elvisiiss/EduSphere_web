@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE_URL = 'http://localhost:8080/api/user'
+const API_BASE_URL = 'http://10.168.82.63:8080/api/user'
 
 export default {
     // 获取我的所有信息

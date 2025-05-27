@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE_URL = 'http://localhost:8080/api/teacher'
+const API_BASE_URL = 'http://10.168.82.63:8080/api/teacher'
 
 export default {
     // 获取教师个人信息

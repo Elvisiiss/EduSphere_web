@@ -45,7 +45,7 @@
           <tr v-for="student in filteredStudents" :key="student.studentId">
             <td>{{ student.studentNumber }}</td>
             <td>{{ student.studentName }}</td>
-            <td>{{ student.gender === 'M' ? '男' : '女' }}</td>
+            <td>{{ student.gender === 'W' ? '女' : '男' }}</td>
             <td>{{ student.phone || '--' }}</td>
             <td>{{ formatDate(student.enrollmentDate) }}</td>
             <td>
