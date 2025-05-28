@@ -1,6 +1,15 @@
 <template>
   <div class="core-analysis">
     <!-- 跨班对比分析 -->
+    <div class="filter-row top-filters">
+      <label>选择主要班级:</label>
+      <select v-model="selectedClass" @change="handleClassChange">
+        <option value="">请选择班级</option>
+        <option v-for="classItem in classes" :key="classItem.classId" :value="classItem.classId">
+          {{ classItem.className }}
+        </option>
+      </select>
+    </div>
     <div class="analysis-section">
       <h3>跨班对比分析</h3>
       <div class="filter-row">
@@ -37,13 +46,6 @@
     <div class="analysis-section">
       <h3>时序演进分析</h3>
       <div class="filter-row">
-        <label>选择班级:</label>
-        <select v-model="selectedClass" @change="fetchTrendData">
-          <option value="">请选择班级</option>
-          <option v-for="classItem in classes" :key="classItem.classId" :value="classItem.classId">
-            {{ classItem.className }}
-          </option>
-        </select>
         <label>选择科目:</label>
         <select v-model="selectedTrendSubject" @change="fetchTrendData"> <!-- 修改为 selectedTrendSubject -->
           <option value="">请选择科目</option>
@@ -129,8 +131,13 @@
               <h5>偏科学生 <span class="badge unbalanced">{{ unbalancedStudents.length }}</span></h5>
               <ul>
                 <li v-for="student in unbalancedStudents" :key="student.studentNumber">
-                  {{ student.studentName }} ({{ student.studentNumber }}) -
-                  偏科指数: <span class="unbalance-index">{{ student.unbalanceIndex.toFixed(2) }}</span>
+                  <div class="student-info-row">
+                    <span class="student-name">{{ student.studentName }}</span>
+                    <span class="student-number">({{ student.studentNumber }})</span>
+                  </div>
+                  <div class="student-info-row">
+                    <span>偏科指数: <span class="unbalance-index">{{ student.unbalanceIndex.toFixed(2) }}</span></span>
+                  </div>
                   <div class="subject-distribution">
                 <span v-for="sub in student.subjects" :key="sub.name"
                       :title="`${sub.name}: ${sub.score}`"
@@ -1332,4 +1339,258 @@ watch(compareMode, () => {
 .subject-distribution .normal {
   background: #409eff;
 }
+
+/* 偏科学生部分优化样式 */
+.student-category.unbalanced {
+  background: #fff9f9;
+  border-left: 4px solid #f56c6c;
+}
+
+.unbalanced h5 {
+  color: #f56c6c;
+  font-size: 16px;
+}
+
+.unbalance-index {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #fef0f0;
+  border-radius: 10px;
+  color: #f56c6c;
+  font-weight: bold;
+  margin-left: 5px;
+}
+
+.subject-distribution {
+  display: flex;
+  height: 16px;
+  margin-top: 8px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f5f7fa;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.subject-distribution span {
+  display: inline-block;
+  height: 100%;
+  position: relative;
+  transition: width 0.3s ease;
+}
+
+.subject-distribution span:hover {
+  opacity: 0.9;
+  transform: scaleY(1.05);
+}
+
+.subject-distribution span::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.7);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+
+.subject-distribution span:hover::after {
+  opacity: 1;
+}
+
+.subject-distribution .excellent {
+  background: linear-gradient(to right, #67c23a, #85ce61);
+}
+
+.subject-distribution .danger {
+  background: linear-gradient(to right, #f56c6c, #f78989);
+}
+
+.subject-distribution .normal {
+  background: linear-gradient(to right, #409eff, #66b1ff);
+}
+
+/* 学生条目悬停效果 */
+.student-category li {
+  transition: background 0.2s;
+  padding: 10px 12px;
+  border-radius: 6px;
+}
+
+.student-category li:hover {
+  background: #f5f7fa;
+}
+
+/* 调整布局 */
+.student-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.student-name {
+  font-weight: 500;
+}
+
+.student-number {
+  color: #909399;
+  font-size: 12px;
+  margin-left: 5px;
+}
+
+/* 偏科学生部分优化样式 */
+.student-category.unbalanced {
+  background: #fff9f9;
+  border-left: 4px solid #f56c6c;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.unbalanced h5 {
+  color: #f56c6c;
+  font-size: 16px;
+  margin-top: 0;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+}
+
+.unbalanced .badge {
+  margin-left: 8px;
+}
+
+/* 学生条目样式 */
+.unbalanced li {
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: all 0.2s ease;
+}
+
+.unbalanced li:hover {
+  box-shadow: 0 2px 8px rgba(245, 108, 108, 0.15);
+  transform: translateY(-1px);
+}
+
+/* 学生信息行 */
+.student-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.student-name {
+  font-weight: 600;
+  color: #303133;
+}
+
+.student-number {
+  color: #909399;
+  font-size: 12px;
+  margin-left: 6px;
+}
+
+/* 偏科指数样式 */
+.unbalance-index {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #fef0f0;
+  border-radius: 10px;
+  color: #f56c6c;
+  font-weight: bold;
+  font-size: 13px;
+}
+
+/* 学科分布横条 */
+.subject-distribution {
+  display: flex;
+  height: 14px;
+  margin-top: 10px;
+  border-radius: 7px;
+  overflow: hidden;
+  background: #f5f7fa;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+  position: relative;
+}
+
+.subject-distribution span {
+  display: inline-block;
+  height: 100%;
+  position: relative;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+/* 悬停效果 */
+.subject-distribution span:hover {
+  transform: scaleY(1.2);
+  z-index: 2;
+  box-shadow: 0 0 5px rgba(0,0,0,0.2);
+}
+
+/* 悬停提示信息 */
+.subject-distribution span::after {
+  content: attr(title);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.8);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.subject-distribution span:hover::after {
+  opacity: 1;
+}
+
+/* 学科颜色 */
+.subject-distribution .excellent {
+  background: linear-gradient(to right, #67c23a, #85ce61);
+}
+
+.subject-distribution .danger {
+  background: linear-gradient(to right, #f56c6c, #f78989);
+}
+
+.subject-distribution .normal {
+  background: linear-gradient(to right, #409eff, #66b1ff);
+}
+
+/* 添加小箭头到提示框 */
+.subject-distribution span::before {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: rgba(0,0,0,0.8) transparent transparent transparent;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.subject-distribution span:hover::before {
+  opacity: 1;
+}
+
 </style>
