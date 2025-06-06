@@ -109,8 +109,8 @@
               <h3>{{ groupName }} <span class="item-count">({{ group.items.length }})</span></h3>
             </div>
             <span class="toggle-icon">
-              {{ groupExpanded[groupName] ? '▼' : '►' }}
-            </span>
+            {{ groupExpanded[groupName] ? '▼' : '►' }}
+          </span>
           </div>
 
           <div v-if="groupExpanded[groupName]" class="schedules-container">
@@ -127,11 +127,11 @@
                 <div class="date-time">
                   <span class="date">{{ formatDate(item.date) }}</span>
                   <span v-if="item.event.repeat_type && item.event.repeat_type !== 'none'" class="recurring-tag">
-                    {{ getRecurringLabel(item.event.repeat_type) }}
-                  </span>
+                  {{ getRecurringLabel(item.event.repeat_type) }}
+                </span>
                   <span class="importance" :title="`重要性：${item.event.degree_of_importance}星`">
-                    {{ '★'.repeat(item.event.degree_of_importance) }}
-                  </span>
+                  {{ '★'.repeat(item.event.degree_of_importance) }}
+                </span>
                   <!-- 添加预测标签 -->
                   <span v-if="item.is_prediction" class="predicted-tag">预测</span>
                 </div>
@@ -139,16 +139,50 @@
                 <div class="description">{{ item.event.event_describe }}</div>
               </div>
               <div class="actions">
-                <!-- 添加完成按钮 -->
-                <button
-                    v-if="!item.is_prediction"
-                    @click="finishSchedule(item.event.event_id)"
-                    class="btn-finish"
-                >
-                  完成
-                </button>
-                <button @click="openEditDialog(item.event)" class="btn-edit">编辑</button>
-                <button @click="deleteSchedule(item.event.event_id)" class="btn-delete">删除</button>
+                <!-- 按钮逻辑修改 -->
+                <!-- 活跃日程和普通日程（非预测分类） -->
+                <template v-if="groupName === '活跃日程' || groupName === '普通日程'">
+                  <button
+                      @click="finishSchedule(item.event.event_id)"
+                      class="btn-finish"
+                  >
+                    完成
+                  </button>
+                  <button
+                      @click="cancelSchedule(item.event.event_id)"
+                      class="btn-cancel"
+                  >
+                    取消
+                  </button>
+                  <button @click="openEditDialog(item.event)" class="btn-edit">编辑</button>
+                  <button @click="deleteSchedule(item.event.event_id)" class="btn-delete">删除</button>
+                </template>
+
+                <!-- 已完成和已取消分类 -->
+                <template v-else-if="groupName === '已完成' || groupName === '已取消'">
+                  <button
+                      @click="restoreSchedule(item.event.event_id)"
+                      class="btn-restore"
+                  >
+                    还原
+                  </button>
+                  <button @click="deleteSchedule(item.event.event_id)" class="btn-delete">删除</button>
+                </template>
+
+                <!-- 已删除分类 -->
+                <template v-else-if="groupName === '已删除'">
+                  <button
+                      @click="restoreSchedule(item.event.event_id)"
+                      class="btn-restore"
+                  >
+                    还原
+                  </button>
+                </template>
+
+                <!-- 预测日程分类 -->
+                <template v-else-if="groupName === '预测日程'">
+                  <button @click="openViewDialog(item.event)" class="btn-view">查看</button>
+                </template>
               </div>
             </div>
           </div>
@@ -337,6 +371,72 @@
         </form>
       </div>
     </div>
+    <!-- 查看对话框（用于预测日程） -->
+    <div v-if="viewDialogVisible" class="edit-dialog">
+      <div class="dialog-overlay" @click="closeViewDialog"></div>
+      <div class="dialog-content">
+        <div class="dialog-header">
+          <h3>查看日程详情</h3>
+          <button class="close-btn" @click="closeViewDialog">×</button>
+        </div>
+
+        <div class="form-section">
+          <h4>基本信息</h4>
+          <div class="form-group">
+            <label>事件名称：</label>
+            <input type="text" v-model="viewForm.event_name" readonly>
+          </div>
+
+          <div class="form-group">
+            <label>事件描述：</label>
+            <textarea v-model="viewForm.event_describe" readonly></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>开始日期：</label>
+              <input type="date" v-model="viewForm.start_date" readonly>
+            </div>
+
+            <div class="form-group">
+              <label>优先级：</label>
+              <input type="text" :value="getImportanceLabel(viewForm.degree_of_importance)" readonly>
+            </div>
+          </div>
+        </div>
+
+        <!-- 重复规则 -->
+        <div class="form-section">
+          <h4>重复规则</h4>
+          <div class="form-group">
+            <label>重复类型：</label>
+            <input type="text" :value="getRepeatTypeLabel(viewForm.repeat_type)" readonly>
+          </div>
+        </div>
+
+        <!-- 结束条件 -->
+        <div class="form-section">
+          <h4>结束条件</h4>
+          <div class="form-group">
+            <label>结束类型：</label>
+            <input type="text" :value="getEndTypeLabel(viewForm.end_type)" readonly>
+          </div>
+        </div>
+
+        <!-- 其他信息 -->
+        <div class="form-section">
+          <h4>其他信息</h4>
+          <div class="form-group">
+            <label>图片URL：</label>
+            <input type="url" v-model="viewForm.img_url" readonly>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" @click="closeViewDialog" class="btn-reset">关闭</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -361,6 +461,19 @@ const isPrediction = ref(false)
 const specificDateSearchEnabled = ref(false);
 const rangeSearchEnabled = ref(false);
 const searchLoading = ref(false);
+const viewDialogVisible = ref(false)
+
+const viewForm = ref({
+  event_id: null,
+  event_name: '',
+  event_describe: '',
+  start_date: '',
+  repeat_type: 'none',
+  end_type: 'never',
+  end_value: null,
+  degree_of_importance: '4',
+  img_url: ''
+})
 
 const toggleSpecificDateSearch = () => {
   specificDateSearchEnabled.value = !specificDateSearchEnabled.value;
@@ -491,6 +604,91 @@ const finishSchedule = async (event_id) => {
   } catch (error) {
     console.error('完成事件失败:', error)
   }
+}
+
+const cancelSchedule = async (event_id) => {
+  if (confirm('确定要取消这个日程吗？')) {
+    try {
+      await scheduleApi.cancel_schedule(user_token, event_id)
+      // 根据上次查询类型重新获取数据
+      if (lastQueryType.value === 'specific') {
+        await fetchSchedulesByDate()
+      } else {
+        await fetchSchedules()
+      }
+    } catch (error) {
+      console.error('取消日程失败:', error)
+    }
+  }
+}
+
+const restoreSchedule = async (event_id) => {
+  try {
+    await scheduleApi.restore_schedule(user_token, event_id)
+    // 根据上次查询类型重新获取数据
+    if (lastQueryType.value === 'specific') {
+      await fetchSchedulesByDate()
+    } else {
+      await fetchSchedules()
+    }
+  } catch (error) {
+    console.error('还原日程失败:', error)
+  }
+}
+
+const openViewDialog = (event) => {
+  // 填充查看表单
+  viewForm.value = {
+    event_id: event.event_id,
+    event_name: event.event_name,
+    event_describe: event.event_describe,
+    start_date: event.start_date,
+    repeat_type: event.repeat_type,
+    end_type: event.end_type,
+    end_value: event.end_value,
+    degree_of_importance: String(event.degree_of_importance),
+    img_url: event.img_url || ''
+  }
+
+  viewDialogVisible.value = true
+}
+
+const closeViewDialog = () => {
+  viewDialogVisible.value = false
+}
+
+const getRepeatTypeLabel = (type) => {
+  const labels = {
+    none: '不重复',
+    daily: '每天',
+    weekly: '每周',
+    monthly_date: '每月（按日期）',
+    monthly_week: '每月（按周）',
+    yearly: '每年',
+    custom: '自定义'
+  }
+  return labels[type] || type
+}
+
+// 获取结束类型标签
+const getEndTypeLabel = (type) => {
+  const labels = {
+    never: '永不结束',
+    after_occurrences: '重复次数后结束',
+    on_date: '指定日期结束'
+  }
+  return labels[type] || type
+}
+
+// 获取重要性标签
+const getImportanceLabel = (level) => {
+  const labels = {
+    '1': '高优先级',
+    '2': '中优先级',
+    '3': '低优先级',
+    '4': '无优先级'
+  }
+  return labels[level] || level
 }
 
 // 按特定日期查询方法
@@ -1527,5 +1725,40 @@ textarea {
 
 .btn-reset:hover {
   background: #d1d9e3;
+}
+
+.btn-cancel {
+  background: linear-gradient(135deg, #f39c12, #d35400);
+  color: white;
+}
+
+.btn-cancel:hover {
+  background: linear-gradient(135deg, #d35400, #b34700);
+}
+
+.btn-restore {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+}
+
+.btn-restore:hover {
+  background: linear-gradient(135deg, #2980b9, #1f6aa5);
+}
+
+.btn-view {
+  background: linear-gradient(135deg, #9b59b6, #8e44ad);
+  color: white;
+}
+
+.btn-view:hover {
+  background: linear-gradient(135deg, #8e44ad, #7d3c98);
+}
+
+/* 只读输入框样式 */
+input[readonly], textarea[readonly] {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  color: #6c757d;
+  cursor: not-allowed;
 }
 </style>

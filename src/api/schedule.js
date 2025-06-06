@@ -89,6 +89,24 @@ export default {
         })
     },
 
+    // 取消日程
+    cancel_schedule(user_token, event_id) {
+        return axios.post(`${API_BASE_URL}/cancel_event`, {
+            msg: "取消日程",
+            user_token: user_token,
+            event_id: event_id
+        })
+    },
+
+    // 还原日程
+    restore_schedule(user_token, event_id) {
+        return axios.post(`${API_BASE_URL}/restore_schedule`, {
+            msg: "还原日程",
+            user_token: user_token,
+            event_id: event_id
+        })
+    },
+
     // 完成事件
     finish_event(user_token, event_id) {
         return axios.post(`${API_BASE_URL}/finish_event`, {

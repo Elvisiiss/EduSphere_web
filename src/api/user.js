@@ -24,5 +24,27 @@ export default {
             user_personalized_signature: userInfo.user_personalized_signature,
             user_profile_picture: userInfo.user_profile_picture
         })
+    },
+
+    upload_img(user_token,file) {
+        return axios.post(`${API_BASE_URL}/upload_img`, {
+            msg: "上传图片",
+            user_token: user_token,
+            file: file
+        })
+    },
+
+    get_all_my_img(user_token) {
+        return axios.post(`${API_BASE_URL}/get_all_my_img`, {
+            msg: "获得我所有的图片",
+            user_token: user_token
+        })
+    },
+
+    delete_my_img(user_token, file_url) {
+        return axios.post(`${API_BASE_URL}/delete_my_img`, {
+            msg: "删除我的照片",
+            file_url: file_url
+        })
     }
 }
