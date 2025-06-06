@@ -384,7 +384,8 @@
           <h4>基本信息</h4>
           <div class="form-group">
             <label>事件名称：</label>
-            <input type="text" v-model="viewForm.event_name" readonly>
+            <input type="text" v-model="viewForm.event_name" maxlength="20" readonly>
+            <div class="char-counter">{{ editForm.event_name.length }}/20</div>
           </div>
 
           <div class="form-group">
@@ -492,7 +493,7 @@ const toggleRangeSearch = () => {
 // 执行关键词搜索
 const searchByKeyword = async () => {
   if (!searchText.value.trim()) {
-    alert('请输入搜索关键词');
+    console.log('请输入搜索关键词');
     return;
   }
 
@@ -523,7 +524,7 @@ const searchByKeyword = async () => {
     updateGroupedSchedules();
   } catch (error) {
     console.error('搜索失败:', error);
-    alert('搜索失败，请重试');
+    console.log('搜索失败，请重试');
   } finally {
     searchLoading.value = false;
   }
@@ -903,6 +904,10 @@ const submitEditForm = async () => {
       end_value: editForm.value.end_type === 'never' ? null : editForm.value.end_value,
       degree_of_importance: editForm.value.degree_of_importance,
       img_url: editForm.value.img_url
+    }
+    if (editForm.value.event_name.length > 20) {
+      console.log('事件名称不能超过20个字');
+      return;
     }
 
     // 调用API更新日程
@@ -1760,5 +1765,12 @@ input[readonly], textarea[readonly] {
   border: 1px solid #e9ecef;
   color: #6c757d;
   cursor: not-allowed;
+}
+
+.char-counter {
+  font-size: 0.8rem;
+  text-align: right;
+  color: #7f8c8d;
+  margin-top: 0.3rem;
 }
 </style>
