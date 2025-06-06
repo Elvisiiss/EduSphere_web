@@ -26,12 +26,19 @@ export default {
         })
     },
 
-    upload_img(user_token,file) {
-        return axios.post(`${API_BASE_URL}/upload_img`, {
-            msg: "上传图片",
-            user_token: user_token,
-            file: file
-        })
+// user.js 修改后的 upload_img 方法
+    upload_img(user_token, file, file_name) {
+        const formData = new FormData();
+        formData.append('msg', '上传图片');
+        formData.append('user_token', user_token);
+        formData.append('file', file);  // 直接添加文件对象
+        formData.append('file_name', file_name);
+
+        return axios.post(`${API_BASE_URL}/upload_img`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'  // 必须设置正确的请求头
+            }
+        });
     },
 
     get_all_my_img(user_token) {
@@ -44,6 +51,7 @@ export default {
     delete_my_img(user_token, file_url) {
         return axios.post(`${API_BASE_URL}/delete_my_img`, {
             msg: "删除我的照片",
+            user_token: user_token,
             file_url: file_url
         })
     }
