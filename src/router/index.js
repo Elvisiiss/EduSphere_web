@@ -45,6 +45,14 @@ const routes = [
         }
     },
     {
+        path: '/schedule',
+        name: 'ScheduleDashboard',
+        component: () => import('@/views/Schedule/Dashboard.vue'),
+        meta: {
+            requiresAuth: true
+        }
+    },
+    {
         path: '/teacher',
         name: 'TeacherDashboard',
         component: () => import('@/views/Teacher/Dashboard.vue'),

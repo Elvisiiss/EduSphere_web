@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <!-- 背景云朵 -->
+    <path d="M50,120 Q60,100 80,100 Q90,80 110,80 Q130,80 140,100 Q160,100 170,120 Q180,120 180,130 Q180,140 170,140 Q160,160 140,160 Q120,180 100,180 Q80,180 60,160 Q40,160 30,140 Q20,140 20,130 Q20,120 30,120 Z" fill="#4FC3F7"/>
+
+    <!-- 书本图形 -->
+    <rect x="80" y="60" width="40" height="60" fill="#FFFFFF" rx="2"/>
+    <rect x="85" y="65" width="30" height="50" fill="#2196F3"/>
+    <line x1="85" y1="80" x2="115" y2="80" stroke="#FFFFFF" stroke-width="2"/>
+    <line x1="85" y1="90" x2="115" y2="90" stroke="#FFFFFF" stroke-width="2"/>
+    <line x1="85" y1="100" x2="115" y2="100" stroke="#FFFFFF" stroke-width="2"/>
+
+    <!-- 人物轮廓 -->
+    <circle cx="70" cy="50" r="15" fill="#FFC107"/>
+    <path d="M70,65 L70,90 Q70,100 60,100 L50,100" stroke="#FFC107" stroke-width="5" fill="none"/>
+    <path d="M70,75 Q90,80 100,70" stroke="#FFC107" stroke-width="5" fill="none"/>
+
+    <!-- 平台名称 -->
+    <text x="100" y="190" font-family="Arial" font-size="16" text-anchor="middle" fill="#333333">学伴云平台</text>
+</svg>

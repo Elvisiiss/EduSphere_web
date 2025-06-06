@@ -496,7 +496,6 @@ const importXlsx = () => {
 
         // Refresh data
         await fetchClassScores()
-        alert('导入成功！')
       } catch (error) {
         console.error('导入失败:', error)
         errorMessage.value = '导入失败，请检查文件格式'

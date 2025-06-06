@@ -79,11 +79,9 @@ const saveInformation = async () => {
     });
     console.log({...userInfo.value})
     await myPower.setMyInformation(token, {...userInfo.value})
-    alert('信息保存成功!')
     originalInfo.value = JSON.parse(JSON.stringify(userInfo.value)) // Update original after save
   } catch (error) {
     console.error('保存用户信息失败:', error)
-    alert('保存失败，请重试')
   }
 }
 

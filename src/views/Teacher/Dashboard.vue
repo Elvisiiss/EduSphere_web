@@ -22,6 +22,9 @@
         <button class="sidebar-btn" @click="handleRoleSwitchClick">
           <i class="icon-role"></i> 切换角色
         </button>
+        <button class="sidebar-btn" @click="setActiveComponent('ScheduleDashboard')">
+          <i class="icon-schedule"></i> 个人日程
+        </button>
         <button class="sidebar-btn logout-btn" @click="logout">
           <i class="icon-logout"></i> 退出登录
         </button>
@@ -55,6 +58,7 @@ import ScoreManagement from '@/views/Teacher/ScoreManagement.vue'
 import RoleSwitcher from '@/views/User/RoleSwitcher.vue'
 import SetInformation from "@/views/User/SetInformation.vue";
 import ScoreAnalysis from '@/views/Teacher/ScoreAnalysis.vue'
+import ScheduleDashboard from "@/views/Schedule/Dashboard.vue";
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -116,6 +120,9 @@ const setActiveComponent = (component) => {
       break
     case 'SetInformation':
       activeComponent.value = SetInformation
+      break
+    case 'ScheduleDashboard':
+      activeComponent.value = ScheduleDashboard
       break
     default:
       activeComponent.value = TeacherWelcome

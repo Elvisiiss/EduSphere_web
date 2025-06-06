@@ -229,7 +229,6 @@ const saveClass = async () => {
   try {
     // 验证必填字段
     if (!currentClass.value.class_name || !currentClass.value.class_grade || !currentClass.value.head_teacher_id) {
-      alert('请填写所有必填字段')
       return
     }
 
@@ -238,7 +237,6 @@ const saveClass = async () => {
         pair => pair.subject_id && !pair.teacher_id
     )
     if (invalidPairs) {
-      alert('请为每个选择的科目指定教师')
       return
     }
 
@@ -290,7 +288,6 @@ const saveClass = async () => {
     closeModal()
   } catch (error) {
     console.error(isEditing.value ? '更新班级失败:' : '添加班级失败:', error)
-    alert(isEditing.value ? '更新班级失败' : '添加班级失败')
   }
 }
 
@@ -314,7 +311,6 @@ const deleteClass = async (classId) => {
       classes.value = classes.value.filter(classItem => classItem.class_id !== classId)
     } catch (error) {
       console.error('删除班级失败:', error)
-      alert('删除班级失败')
     }
   }
 }
