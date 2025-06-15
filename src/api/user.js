@@ -54,5 +54,14 @@ export default {
             user_token: user_token,
             file_url: file_url
         })
-    }
+    },
+
+    resetPasswordWithOld(user_token, new_password, user_password) {
+        return axios.post(`${API_BASE_URL}/reset_passwd`, {
+            msg: "通过旧密码重置密码",
+            user_token: user_token,
+            new_password: new_password,
+            user_password: user_password
+        })
+    },
 }

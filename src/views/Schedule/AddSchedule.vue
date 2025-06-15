@@ -7,8 +7,7 @@
         <h3>基本信息</h3>
         <div class="form-group">
           <label>事件名称：</label>
-          <input type="text" v-model="form.event_name" maxlength="20" required>
-          <div class="char-counter">{{ form.event_name.length }}/20</div>
+          <input type="text" v-model="form.event_name" required>
         </div>
 
         <div class="form-group">
@@ -280,10 +279,6 @@ const submitForm = async () => {
       repeat_config: JSON.stringify(repeat_config),
       end_value: form.value.end_type === 'never' ? null : form.value.end_value
     }
-    if (form.value.event_name.length > 20) {
-      console.log('事件名称不能超过20个字');
-      return;
-    }
 
     // 调用API创建日程
     await scheduleApi.create_schedule(
@@ -468,12 +463,5 @@ button {
 
 .btn-reset:hover {
   background-color: #7f8c8d;
-}
-
-.char-counter {
-  font-size: 0.8rem;
-  text-align: right;
-  color: #7f8c8d;
-  margin-top: 0.3rem;
 }
 </style>

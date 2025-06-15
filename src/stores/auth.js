@@ -62,9 +62,5 @@ export const useAuthStore = defineStore('auth', () => {
         setUser,
         clearUser,
         loadUserFromStorage,
-        isStudent,
-        isTeacher,
-        isAdmin,
-        redirectBasedOnRole
     }
 })

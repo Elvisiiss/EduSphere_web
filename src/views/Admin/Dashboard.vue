@@ -28,9 +28,6 @@
         <button class="sidebar-btn" @click="setActiveComponent('RoleSwitcher')">
           <i class="icon-role"></i> 切换角色
         </button>
-        <button class="sidebar-btn" @click="setActiveComponent('UploadImg')">
-          <i class="icon-schedule"></i> 上传图片
-        </button>
         <button class="sidebar-btn" @click="setActiveComponent('ScheduleDashboard')">
           <i class="icon-schedule"></i> 个人日程
         </button>
@@ -70,7 +67,6 @@ import PowerManagement from '@/views/Admin/PowerManagement.vue'
 import SubjectManagement from '@/views/Admin/SubjectManagement.vue'
 import ClassesManagement from '@/views/Admin/ClassesManagement.vue'
 import ScheduleDashboard from '@/views/Schedule/Dashboard.vue'
-import UploadImg from "@/views/User/UploadImg.vue";
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -126,9 +122,6 @@ const setActiveComponent = (component) => {
       break
     case 'SetInformation':
       activeComponent.value = SetInformation
-      break
-    case 'UploadImg':
-      activeComponent.value = UploadImg
       break
     case 'ScheduleDashboard':
       activeComponent.value = ScheduleDashboard

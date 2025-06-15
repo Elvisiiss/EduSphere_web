@@ -1,5 +1,7 @@
 <template>
-  <div class="login-wrapper">
+  <div class="login-wrapper" :class="{ 'portrait-mode': isPortrait }">
+    <div class="login-bg" v-if="isPortrait"></div>
+    <div class="login-bg_h" v-else></div>
     <div class="login-container">
       <div class="login-header">
         <h1>学伴云平台</h1>
@@ -66,7 +68,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import authApi from '@/api/auth'
@@ -82,6 +84,23 @@ const errorMessage = ref('')
 const isLoading = ref(false)
 const router = useRouter()
 const authStore = useAuthStore()
+
+// 添加屏幕方向检测
+const isPortrait = ref(false)
+
+const checkOrientation = () => {
+  // 判断宽高比，小于1表示竖屏（手机端）
+  isPortrait.value = window.innerWidth <= window.innerHeight
+}
+
+onMounted(() => {
+  checkOrientation()
+  window.addEventListener('resize', checkOrientation)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkOrientation)
+})
 
 const token = useStorage('user_token', null, undefined, {
   serializer: {
@@ -364,4 +383,62 @@ const handleSubmit = async () => {
     padding: 12px;
   }
 }
+
+.login-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 20px;
+  position: relative;
+}
+
+.login-wrapper.portrait-mode {
+  background: transparent;
+}
+
+.login-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('@/assets/login_background_perpendicular.jpg');
+  background-size: cover;
+  background-position: center;
+  filter: blur(10px);
+  z-index: 0;
+}
+
+.login-bg_h {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('@/assets/login_background_horizontal.jpg');
+  background-size: cover;
+  background-position: center;
+  filter: blur(10px);
+  z-index: 0;
+}
+
+.login-container {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  padding: 40px;
+  animation: fadeIn 0.5s ease;
+  position: relative;
+  z-index: 1;
+}
+
+/* 竖屏模式下容器背景半透明 */
+.login-wrapper.portrait-mode .login-container {
+  background: rgba(255, 255, 255, 0.85);
+}
+
 </style>
