@@ -113,6 +113,7 @@
 import { useAuthStore } from '@/stores/auth'
 import adminPower from '@/api/admin.js'
 import { ref, onMounted, computed } from 'vue'
+import {ElMessage} from "element-plus";
 
 const authStore = useAuthStore()
 const token = authStore.user?.token
@@ -229,6 +230,7 @@ const saveClass = async () => {
   try {
     // 验证必填字段
     if (!currentClass.value.class_name || !currentClass.value.class_grade || !currentClass.value.head_teacher_id) {
+      ElMessage.error('请填写所有必填字段（班级名称、年级、班主任）')
       return
     }
 
@@ -237,13 +239,19 @@ const saveClass = async () => {
         pair => pair.subject_id && !pair.teacher_id
     )
     if (invalidPairs) {
+      ElMessage.error('请为所有已选科目选择对应的教师')
       return
     }
 
-    // 过滤出有效的科目教师对
+    // 检查是否有至少一个有效的科目教师对
     const validPairs = currentClass.value.subject_teacher.filter(
         pair => pair.subject_id && pair.teacher_id
     )
+
+    if (validPairs.length === 0) {
+      ElMessage.error('请至少添加一个科目及对应教师')
+      return
+    }
 
     // 提取科目ID数组
     const subjects_id = validPairs.map(pair => pair.subject_id)
@@ -271,6 +279,7 @@ const saveClass = async () => {
           subject_teacher: [...validPairs]
         }
       }
+      ElMessage.success('班级更新成功')
     } else {
       // 添加新班级
       const response = await adminPower.addOneClass(
@@ -283,11 +292,15 @@ const saveClass = async () => {
       )
       if (response.data) {
         classes.value.push(response.data)
+        ElMessage.success('班级添加成功')
       }
     }
     closeModal()
+    fetchClasses()
+    fetchTeachers()
+    fetchAllSubjects()
   } catch (error) {
-    console.error(isEditing.value ? '更新班级失败:' : '添加班级失败:', error)
+    ElMessage.error(isEditing.value ? '更新班级失败:' : '添加班级失败:', error)
   }
 }
 
@@ -309,8 +322,9 @@ const deleteClass = async (classId) => {
     try {
       await adminPower.deleteClass(token, classId)
       classes.value = classes.value.filter(classItem => classItem.class_id !== classId)
+      ElMessage.success('删除班级成功')
     } catch (error) {
-      console.error('删除班级失败:', error)
+      ElMessage.error('删除班级失败:', error)
     }
   }
 }

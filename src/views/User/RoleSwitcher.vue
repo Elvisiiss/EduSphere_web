@@ -18,15 +18,29 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import {ElMessage} from "element-plus";
 
 const router = useRouter()
+const authStore = useAuthStore()
+const powers = authStore.user?.powers || []
 
 const switchToTeacher = () => {
-  router.push('/teacher')
+  if (!powers.includes(2)){
+    ElMessage.error("你无权去教师端")
+  } else {
+    router.push('/teacher')
+    ElMessage.success("已切换")
+  }
 }
 
 const switchToStudent = () => {
-  router.push('/student')
+  if (!powers.includes(1)){
+    ElMessage.error("你无权去学生端")
+  } else {
+    router.push('/student')
+    ElMessage.success("已切换")
+  }
 }
 </script>
 

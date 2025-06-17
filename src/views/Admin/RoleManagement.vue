@@ -40,7 +40,8 @@
         <h2>{{ isEditing ? '编辑角色' : '添加角色' }}</h2>
         <div class="form-group">
           <label>角色名称:</label>
-          <input type="text" v-model="currentRole.role_name">
+          <input type="text" v-model="currentRole.role_name" :class="{ 'input-error': nameError }">
+          <span v-if="nameError" class="error-message">角色名称不能为空</span>
         </div>
         <div class="form-group">
           <label>权限:</label>
@@ -69,6 +70,7 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import adminPower from '@/api/admin.js'
+import {ElMessage} from "element-plus";
 
 const authStore = useAuthStore()
 const token = authStore.user?.token
@@ -81,11 +83,12 @@ const currentRole = ref({
   role_name: '',
   selectedPowers: []
 })
+const nameError = ref(false)
 
 const fetchRoles = async () => {
   try {
     if (!token) {
-      console.error('未找到用户token')
+      ElMessage.error('未找到用户token')
       return
     }
     const response = await adminPower.getAllRoles(token)
@@ -93,7 +96,7 @@ const fetchRoles = async () => {
       roles.value = response.data
     }
   } catch (error) {
-    console.error('获取角色列表失败:', error)
+    ElMessage.error('获取角色列表失败:', error)
   }
 }
 
@@ -104,7 +107,7 @@ const fetchAllPowers = async () => {
       allPowers.value = response.data
     }
   } catch (error) {
-    console.error('获取权限列表失败:', error)
+    ElMessage.error('获取权限列表失败:', error)
   }
 }
 
@@ -117,6 +120,7 @@ const getPowerNames = (powerIds) => {
 }
 
 const showAddRoleModal = () => {
+  nameError.value = false
   currentRole.value = {
     role_id: '',
     role_name: '',
@@ -127,6 +131,7 @@ const showAddRoleModal = () => {
 }
 
 const showEditModal = (role) => {
+  nameError.value = false
   currentRole.value = {
     role_id: role.role_id,
     role_name: role.role_name,
@@ -141,6 +146,12 @@ const closeModal = () => {
 }
 
 const saveRole = async () => {
+  if (!currentRole.value.role_name || currentRole.value.role_name.trim() === '') {
+    nameError.value = true
+    ElMessage.error('角色名称不能为空')
+    return
+  }
+  nameError.value = false
   try {
     if (isEditing.value) {
       // 更新角色
@@ -174,8 +185,11 @@ const saveRole = async () => {
       }
     }
     closeModal()
+    fetchRoles()
+    fetchAllPowers()
+    ElMessage.success(isEditing.value ? '更新角色成功' : '添加角色成功')
   } catch (error) {
-    console.error(isEditing.value ? '更新角色失败:' : '添加角色失败:', error)
+    ElMessage.error(isEditing.value ? '更新角色失败:' : '添加角色失败:', error)
   }
 }
 
@@ -184,8 +198,9 @@ const deleteRole = async (roleId) => {
     try {
       await adminPower.deleteRole(token, roleId)
       roles.value = roles.value.filter(role => role.role_id !== roleId)
+      ElMessage.success('删除角色成功')
     } catch (error) {
-      console.error('删除角色失败:', error)
+      ElMessage.error('删除角色失败:', error)
     }
   }
 }
@@ -337,5 +352,16 @@ th {
   border: none;
   border-radius: 3px;
   cursor: pointer;
+}
+
+.input-error {
+  border-color: #e74c3c !important;
+}
+
+.error-message {
+  color: #e74c3c;
+  font-size: 12px;
+  display: block;
+  margin-top: 5px;
 }
 </style>

@@ -8,16 +8,12 @@
         <tr>
           <th>ID</th>
           <th>权限名称</th>
-          <th>权限描述</th>
-          <th>创建时间</th>
         </tr>
         </thead>
         <tbody>
         <tr v-for="power in powers" :key="power.power_id">
           <td>{{ power.power_id }}</td>
           <td>{{ power.power_name }}</td>
-          <td>{{ power.power_desc || '无描述' }}</td>
-          <td>{{ formatDate(power.create_time) }}</td>
         </tr>
         </tbody>
       </table>
@@ -45,12 +41,6 @@ const fetchPowers = async () => {
   } catch (error) {
     console.error('获取权限列表失败:', error)
   }
-}
-
-const formatDate = (timestamp) => {
-  if (!timestamp) return '未知时间'
-  const date = new Date(timestamp)
-  return date.toLocaleString()
 }
 
 onMounted(() => {

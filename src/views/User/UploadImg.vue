@@ -87,7 +87,7 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import userAPI from '@/api/user.js'
-import Swal from "sweetalert2";
+import { ElMessage } from "element-plus";
 
 const authStore = useAuthStore()
 const token = ref('')
@@ -135,9 +135,9 @@ const copyFileUrl = (text) => {
 
   try {
     const successful = document.execCommand('copy');
-    Swal.fire(successful ? '链接已复制！' : '复制失败，请手动复制');
+    ElMessage.success(successful ? '链接已复制！' : '复制失败，请手动复制');
   } catch (err) {
-    Swal.fire('复制失败，请手动复制');
+    ElMessage.error('复制失败，请手动复制');
     console.error('复制失败:', err);
   } finally {
     document.body.removeChild(textarea);
@@ -166,11 +166,11 @@ const uploadFiles = async () => {
       )
     }
 
-    Swal.fire('文件上传成功！')
+    ElMessage.success('文件上传成功！')
     selectedFiles.value = []
   } catch (error) {
     console.error('上传失败:', error)
-    Swal.fire('文件上传失败，请重试')
+    ElMessage.error('文件上传失败，请重试')
   } finally {
     isUploading.value = false
     uploadProgress.value = 0

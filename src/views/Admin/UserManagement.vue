@@ -113,6 +113,7 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import adminPower from '@/api/admin.js'
+import {ElMessage} from "element-plus";
 
 const authStore = useAuthStore()
 const token = authStore.user?.token
@@ -133,13 +134,13 @@ const currentUser = ref({
 const viewUsers = async () => {
   try {
     if (!token) {
-      console.error('未找到用户token')
+      ElMessage.error('未找到用户token')
       return
     }
     const response = await adminPower.getAllUsers(token)
     users.value = response.data
   } catch (error) {
-    console.error('获取用户列表失败:', error)
+    ElMessage.error('获取用户列表失败:', error)
   }
 }
 
@@ -150,7 +151,7 @@ const fetchAllRoles = async () => {
       allRoles.value = response.data
     }
   } catch (error) {
-    console.error('获取角色列表失败:', error)
+    ElMessage.error('获取角色列表失败:', error)
   }
 }
 
@@ -245,8 +246,11 @@ const saveUser = async () => {
       }
     }
     closeModal()
+    viewUsers()
+    fetchAllRoles()
+    ElMessage.success(isEditing.value ?'更新用户成功':'添加用户成功')
   } catch (error) {
-    console.error(isEditing.value ? '更新用户失败:' : '添加用户失败:', error)
+    ElMessage.error(isEditing.value ? '更新用户失败:' : '添加用户失败:', error)
   }
 }
 
@@ -265,8 +269,9 @@ const saveUserRoles = async () => {
       users.value[index].user_roles_id = [...currentUser.value.selectedRoles]
     }
     closeModal()
+    ElMessage.success('更新用户角色成功')
   } catch (error) {
-    console.error('更新用户角色失败:', error)
+    ElMessage.error('更新用户角色失败:', error)
   }
 }
 
@@ -275,8 +280,9 @@ const deleteUser = async (userId) => {
     try {
       await adminPower.deleteUser(token, userId)
       users.value = users.value.filter(user => user.user_id !== userId)
+      ElMessage.success('删除用户成功')
     } catch (error) {
-      console.error('删除用户失败:', error)
+      ElMessage.error('删除用户失败:', error)
     }
   }
 }

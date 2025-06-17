@@ -35,7 +35,12 @@
         <h2>{{ isEditing ? '编辑科目' : '添加科目' }}</h2>
         <div class="form-group">
           <label>科目名称:</label>
-          <input type="text" v-model="currentSubject.subject_name">
+          <input
+              type="text"
+              v-model="currentSubject.subject_name"
+              :class="{ 'input-error': nameError }"
+          >
+          <span v-if="nameError" class="error-message">科目名称不能为空</span>
         </div>
         <div class="form-group">
           <label>科目描述:</label>
@@ -54,12 +59,14 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import adminPower from '@/api/admin.js'
+import { ElMessage } from "element-plus"
 
 const authStore = useAuthStore()
 const token = authStore.user?.token
 const subjects = ref([])
 const showSubjectModal = ref(false)
 const isEditing = ref(false)
+const nameError = ref(false)
 const currentSubject = ref({
   subject_id: '',
   subject_name: '',
@@ -69,13 +76,13 @@ const currentSubject = ref({
 const fetchSubjects = async () => {
   try {
     if (!token) {
-      console.error('未找到用户token')
+      ElMessage.error('未找到用户token')
       return
     }
     const response = await adminPower.getAllSubjects(token)
     subjects.value = response.data
   } catch (error) {
-    console.error('获取科目列表失败:', error)
+    ElMessage.error('获取科目列表失败:' + error.message)
   }
 }
 
@@ -85,6 +92,7 @@ const showAddSubjectModal = () => {
     subject_name: '',
     subject_desc: ''
   }
+  nameError.value = false
   isEditing.value = false
   showSubjectModal.value = true
 }
@@ -95,6 +103,7 @@ const showEditModal = (subject) => {
     subject_name: subject.subject_name,
     subject_desc: subject.subject_desc
   }
+  nameError.value = false
   isEditing.value = true
   showSubjectModal.value = true
 }
@@ -104,6 +113,15 @@ const closeModal = () => {
 }
 
 const saveSubject = async () => {
+  // 验证科目名称
+  if (!currentSubject.value.subject_name || currentSubject.value.subject_name.trim() === '') {
+    nameError.value = true
+    ElMessage.error('科目名称不能为空')
+    return
+  }
+
+  nameError.value = false
+
   try {
     if (isEditing.value) {
       // 更新科目
@@ -119,6 +137,7 @@ const saveSubject = async () => {
       if (index !== -1) {
         subjects.value[index] = { ...currentSubject.value }
       }
+      ElMessage.success('科目更新成功')
     } else {
       // 添加新科目
       const response = await adminPower.addOneSubject(
@@ -129,10 +148,12 @@ const saveSubject = async () => {
       if (response.data) {
         subjects.value.push(response.data)
       }
+      ElMessage.success('科目添加成功')
     }
     closeModal()
+    fetchSubjects()
   } catch (error) {
-    console.error(isEditing.value ? '更新科目失败:' : '添加科目失败:', error)
+    ElMessage.error(isEditing.value ? '更新科目失败: ' + error.message : '添加科目失败: ' + error.message)
   }
 }
 
@@ -141,8 +162,9 @@ const deleteSubject = async (subjectId) => {
     try {
       await adminPower.deleteSubject(token, subjectId)
       subjects.value = subjects.value.filter(subject => subject.subject_id !== subjectId)
+      ElMessage.success('科目删除成功')
     } catch (error) {
-      console.error('删除科目失败:', error)
+      ElMessage.error('删除科目失败: ' + error.message)
     }
   }
 }
@@ -153,6 +175,141 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.subject-management {
+  background-color: white;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.add-btn {
+  padding: 8px 15px;
+  background-color: #2ecc71;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+
+.subject-list {
+  margin-top: 20px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+th {
+  background-color: #f2f2f2;
+}
+
+.edit-btn {
+  padding: 5px 10px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  margin-right: 5px;
+}
+
+.delete-btn {
+  padding: 5px 10px;
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 5px;
+  width: 500px;
+  max-width: 90%;
+}
+
+.close {
+  float: right;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.save-btn {
+  padding: 8px 15px;
+  background-color: #2ecc71;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.cancel-btn {
+  padding: 8px 15px;
+  background-color: #95a5a6;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.input-error {
+  border-color: #e74c3c !important;
+}
+
+.error-message {
+  color: #e74c3c;
+  font-size: 12px;
+  display: block;
+  margin-top: 5px;
+}
+
+/* 原有样式保持不变 */
 .subject-management {
   background-color: white;
   padding: 20px;

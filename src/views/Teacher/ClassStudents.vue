@@ -35,9 +35,6 @@
           <tr>
             <th>学号</th>
             <th>姓名</th>
-            <th>性别</th>
-            <th>联系电话</th>
-            <th>入学日期</th>
             <th>操作</th>
           </tr>
           </thead>
@@ -45,12 +42,8 @@
           <tr v-for="student in filteredStudents" :key="student.studentId">
             <td>{{ student.studentNumber }}</td>
             <td>{{ student.studentName }}</td>
-            <td>{{ student.gender === 'W' ? '女' : '男' }}</td>
-            <td>{{ student.phone || '--' }}</td>
-            <td>{{ formatDate(student.enrollmentDate) }}</td>
             <td>
               <button @click="viewStudentDetails(student)" class="view-btn">查看</button>
-              <button @click="editStudent(student)" class="edit-btn">编辑</button>
               <button @click="confirmDeleteStudent(student.studentId)" class="delete-btn">删除</button>
             </td>
           </tr>
@@ -80,30 +73,6 @@
             <div class="info-row">
               <span class="info-label">姓名:</span>
               <span class="info-value">{{ selectedStudent.studentName }}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">性别:</span>
-              <span class="info-value">{{ selectedStudent.gender === 'M' ? '男' : '女' }}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">出生日期:</span>
-              <span class="info-value">{{ formatDate(selectedStudent.birthDate) }}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">联系电话:</span>
-              <span class="info-value">{{ selectedStudent.phone || '--' }}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">邮箱:</span>
-              <span class="info-value">{{ selectedStudent.email || '--' }}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">家庭住址:</span>
-              <span class="info-value">{{ selectedStudent.address || '--' }}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">入学日期:</span>
-              <span class="info-value">{{ formatDate(selectedStudent.enrollmentDate) }}</span>
             </div>
           </div>
 
@@ -233,8 +202,8 @@
     <!-- 删除确认模态框 -->
     <div v-if="showDeleteModal" class="modal">
       <div class="modal-content">
-        <h2>确认删除</h2>
-        <p>确定要删除这名学生吗？此操作无法撤销。</p>
+        <h2>&nbsp&nbsp&nbsp&nbsp&nbsp确认删除</h2>
+        <p>&nbsp&nbsp&nbsp&nbsp&nbsp确定要删除这名学生吗？此操作无法撤销。</p>
         <div class="modal-actions">
           <button @click="deleteStudent" class="delete-btn">删除</button>
           <button @click="cancelDelete" class="cancel-btn">取消</button>
@@ -249,6 +218,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import teacherApi from '@/api/teacher.js'
+import {ElMessage} from "element-plus";
 
 const route = useRoute()
 const router = useRouter()
@@ -280,12 +250,6 @@ const currentStudent = ref({
   studentId: '',
   studentNumber: '',
   studentName: '',
-  gender: 'M',
-  birthDate: '',
-  phone: '',
-  email: '',
-  address: '',
-  enrollmentDate: new Date().toISOString().split('T')[0]
 })
 const showDeleteModal = ref(false)
 const studentToDelete = ref(null)
@@ -313,7 +277,7 @@ const fetchClassData = async () => {
       filteredStudents.value = [...students.value]
     }
   } catch (err) {
-    console.error('获取班级数据失败:', err)
+    ElMessage.error('获取班级数据失败:', err)
     error.value = err.message || '获取班级数据失败'
   } finally {
     loading.value = false
@@ -337,7 +301,7 @@ const fetchNonClassStudents = async () => {
     nonClassStudents.value = response.data
     totalStudents.value = response.data.length
   } catch (err) {
-    console.error('获取非本班学生失败:', err)
+    ElMessage.error('获取非本班学生失败:', err)
     nonClassStudentsError.value = err.message || '获取学生列表失败'
   } finally {
     nonClassStudentsLoading.value = false
@@ -380,8 +344,9 @@ const addSelectedStudents = async () => {
     selectedStudents.value = []
     studentSearchQuery.value = ''
     fetchNonClassStudents()
+    ElMessage.success('添加学生成功')
   } catch (err) {
-    console.error('添加学生失败:', err)
+    ElMessage.error('添加学生失败:', err)
     errorMessage.value = err.message || '添加学生失败'
   } finally {
     loading.value = false
@@ -409,7 +374,7 @@ const viewStudentDetails = async (student) => {
       studentScores.value = response.data
     }
   } catch (err) {
-    console.error('获取学生成绩失败:', err)
+    ElMessage.error('获取学生成绩失败:', err)
     errorMessage.value = '获取学生成绩失败'
   }
 }
@@ -428,12 +393,6 @@ const showAddStudentModal = () => {
     studentId: '',
     studentNumber: '',
     studentName: '',
-    gender: 'M',
-    birthDate: '',
-    phone: '',
-    email: '',
-    address: '',
-    enrollmentDate: new Date().toISOString().split('T')[0]
   }
   isEditing.value = false
   errorMessage.value = ''
@@ -443,54 +402,10 @@ const showAddStudentModal = () => {
   fetchNonClassStudents()
 }
 
-const editStudent = (student) => {
-  currentStudent.value = {
-    ...student,
-    birthDate: student.birthDate ? student.birthDate.split('T')[0] : '',
-    enrollmentDate: student.enrollmentDate ? student.enrollmentDate.split('T')[0] : ''
-  }
-  isEditing.value = true
-  errorMessage.value = ''
-  showStudentModal.value = true
-}
-
 const closeStudentModal = () => {
   showStudentModal.value = false
 }
 
-const saveStudent = async () => {
-  // 验证表单
-  if (!currentStudent.value.studentNumber || !currentStudent.value.studentName ||
-      !currentStudent.value.gender || !currentStudent.value.birthDate ||
-      !currentStudent.value.enrollmentDate) {
-    errorMessage.value = '请填写所有必填字段'
-    return
-  }
-
-  try {
-    if (isEditing.value) {
-      // 更新学生信息
-      await teacherApi.updateStudentInfo(token, currentStudent.value.studentId, {
-        studentName: currentStudent.value.studentName,
-        gender: currentStudent.value.gender,
-        birthDate: currentStudent.value.birthDate,
-        phone: currentStudent.value.phone,
-        email: currentStudent.value.email,
-        address: currentStudent.value.address,
-        enrollmentDate: currentStudent.value.enrollmentDate
-      })
-    } else {
-      // 添加新学生
-      await teacherApi.addStudentToClass(token, classId, currentStudent.value)
-    }
-
-    closeStudentModal()
-    await fetchClassData()
-  } catch (err) {
-    console.error(isEditing.value ? '更新学生信息失败:' : '添加学生失败:', err)
-    errorMessage.value = err.message || (isEditing.value ? '更新学生信息失败' : '添加学生失败')
-  }
-}
 
 const confirmDeleteStudent = (studentId) => {
   studentToDelete.value = studentId
@@ -508,8 +423,9 @@ const deleteStudent = async () => {
     await fetchClassData()
     showDeleteModal.value = false
     studentToDelete.value = null
+    ElMessage.success('删除学生成功')
   } catch (err) {
-    console.error('删除学生失败:', err)
+    ElMessage.error('删除学生失败:', err)
     errorMessage.value = '删除学生失败'
   }
 }
@@ -526,11 +442,6 @@ const getScoreClass = (score) => {
   return 'poor'
 }
 
-const formatDate = (dateString) => {
-  if (!dateString) return '--'
-  const date = new Date(dateString)
-  return date.toLocaleDateString('zh-CN')
-}
 
 const goBack = () => {
   router.push({ name: 'TeacherDashboard' })

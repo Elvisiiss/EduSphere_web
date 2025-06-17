@@ -134,6 +134,7 @@ import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import myPower from '@/api/user.js'
 import authApi from '@/api/auth'
+import {ElMessage} from "element-plus";
 
 const authStore = useAuthStore()
 const token = authStore.user?.token
@@ -163,14 +164,14 @@ const emailLoading = ref(false)
 const fetchUserInformation = async () => {
   try {
     if (!token) {
-      console.error('未找到用户token')
+      ElMessage.error('未找到用户token')
       return
     }
     const response = await myPower.getMyInformation(token)
     userInfo.value = response.data
     originalInfo.value = JSON.parse(JSON.stringify(response.data)) // Deep copy for reset
   } catch (error) {
-    console.error('获取用户信息失败:', error)
+    ElMessage.error('获取用户信息失败:', error)
   }
 }
 
@@ -183,8 +184,9 @@ const saveInformation = async () => {
     console.log({...userInfo.value})
     await myPower.setMyInformation(token, {...userInfo.value})
     originalInfo.value = JSON.parse(JSON.stringify(userInfo.value)) // Update original after save
+    ElMessage.success('保存用户信息成功')
   } catch (error) {
-    console.error('保存用户信息失败:', error)
+    ElMessage.error('保存用户信息失败:', error)
   }
 }
 
@@ -192,6 +194,7 @@ const resetForm = () => {
   if (originalInfo.value) {
     userInfo.value = JSON.parse(JSON.stringify(originalInfo.value))
   }
+  ElMessage.success('已重置')
 }
 
 // Password reset methods
@@ -231,7 +234,7 @@ const resetPasswordWithOldPassword = async () => {
       passwordError.value = response.data.msg || '密码修改失败'
     }
   } catch (error) {
-    console.error('密码修改失败:', error)
+    ElMessage.error('密码修改失败:', error)
     passwordError.value = error.response?.data?.msg || '密码修改失败'
   } finally {
     passwordLoading.value = false
@@ -276,7 +279,7 @@ const handleResetPassword = async () => {
       emailError.value = response.data.msg || '重置密码失败'
     }
   } catch (error) {
-    console.error('重置密码失败:', error)
+    ElMessage.error('重置密码失败:', error)
     emailError.value = error.response?.data?.msg || '重置密码失败'
   } finally {
     emailLoading.value = false
@@ -291,7 +294,7 @@ const sendResetCode = async () => {
     await authApi.sendResetPasswordCode(resetEmail.value)
     showResetCodeField.value = true
   } catch (error) {
-    console.error('发送验证码失败:', error)
+    ElMessage.error('发送验证码失败:', error)
     emailError.value = error.response?.data?.msg || '发送验证码失败'
   } finally {
     emailLoading.value = false

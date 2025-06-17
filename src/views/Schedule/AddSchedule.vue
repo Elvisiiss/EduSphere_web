@@ -178,6 +178,7 @@
 import { ref, reactive } from 'vue'
 import scheduleApi from '@/api/schedule'
 import { useAuthStore } from '@/stores/auth.js'
+import {ElMessage} from "element-plus";
 
 const authStore = useAuthStore()
 const user_token = authStore.user.token
@@ -295,8 +296,9 @@ const submitForm = async () => {
     )
 
     resetForm()
+    ElMessage.success("添加日常成功")
   } catch (error) {
-    console.error('添加日程失败:', error)
+    ElMessage.error('添加日程失败:', error)
   }
 }
 

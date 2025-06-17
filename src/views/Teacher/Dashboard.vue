@@ -22,6 +22,9 @@
         <button class="sidebar-btn" @click="handleRoleSwitchClick">
           <i class="icon-role"></i> 切换角色
         </button>
+        <button class="sidebar-btn" @click="setActiveComponent('UploadImg')">
+          <i class="icon-uploadImg"></i> 上传图片
+        </button>
         <button class="sidebar-btn" @click="setActiveComponent('ScheduleDashboard')">
           <i class="icon-schedule"></i> 个人日程
         </button>
@@ -59,6 +62,8 @@ import RoleSwitcher from '@/views/User/RoleSwitcher.vue'
 import SetInformation from "@/views/User/SetInformation.vue";
 import ScoreAnalysis from '@/views/Teacher/ScoreAnalysis.vue'
 import ScheduleDashboard from "@/views/Schedule/Dashboard.vue";
+import UploadImg from "@/views/User/UploadImg.vue";
+import { ElMessage } from "element-plus";
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -67,6 +72,8 @@ const isCollapsed = ref(true)
 const activeComponent = shallowRef(TeacherWelcome)
 const userAvatar = ref('logo.svg')
 const roleSwitchClickCount = ref(0)
+const powers = authStore.user?.powers || []
+
 
 const fetchUserAvatar = async () => {
   try {
@@ -92,10 +99,10 @@ const toggleSidebar = () => {
 
 const handleRoleSwitchClick = () => {
   roleSwitchClickCount.value++
-
   if (roleSwitchClickCount.value === 7) {
     router.push('/admin')
-    roleSwitchClickCount.value = 0 // Reset counter after redirect
+    roleSwitchClickCount.value = 0 // 重置计数器
+    ElMessage.success("已切换")
   } else {
     setActiveComponent('RoleSwitcher')
   }
@@ -120,6 +127,9 @@ const setActiveComponent = (component) => {
       break
     case 'SetInformation':
       activeComponent.value = SetInformation
+      break
+    case 'UploadImg':
+      activeComponent.value = UploadImg
       break
     case 'ScheduleDashboard':
       activeComponent.value = ScheduleDashboard

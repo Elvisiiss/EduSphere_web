@@ -444,6 +444,7 @@
 import {computed, onMounted, reactive, ref} from 'vue'
 import scheduleApi from '@/api/schedule'
 import {useAuthStore} from '@/stores/auth.js'
+import {ElMessage} from "element-plus";
 
 const authStore = useAuthStore()
 const user_token = authStore.user.token
@@ -492,7 +493,7 @@ const toggleRangeSearch = () => {
 // 执行关键词搜索
 const searchByKeyword = async () => {
   if (!searchText.value.trim()) {
-    alert('请输入搜索关键词');
+    ElMessage.error('请输入搜索关键词')
     return;
   }
 
@@ -522,8 +523,7 @@ const searchByKeyword = async () => {
     lastQueryType.value = 'search';
     updateGroupedSchedules();
   } catch (error) {
-    console.error('搜索失败:', error);
-    alert('搜索失败，请重试');
+    ElMessage.error('搜索失败:', error);
   } finally {
     searchLoading.value = false;
   }
@@ -601,24 +601,24 @@ const finishSchedule = async (event_id) => {
     } else {
       await fetchSchedules()
     }
+    ElMessage.success('完成事件成功')
   } catch (error) {
-    console.error('完成事件失败:', error)
+    ElMessage.error('完成事件失败:', error)
   }
 }
 
 const cancelSchedule = async (event_id) => {
-  if (confirm('确定要取消这个日程吗？')) {
-    try {
-      await scheduleApi.cancel_schedule(user_token, event_id)
-      // 根据上次查询类型重新获取数据
-      if (lastQueryType.value === 'specific') {
-        await fetchSchedulesByDate()
-      } else {
-        await fetchSchedules()
-      }
-    } catch (error) {
-      console.error('取消日程失败:', error)
+  try {
+    await scheduleApi.cancel_schedule(user_token, event_id)
+    // 根据上次查询类型重新获取数据
+    if (lastQueryType.value === 'specific') {
+      await fetchSchedulesByDate()
+    } else {
+      await fetchSchedules()
     }
+    ElMessage.success('取消日程成功')
+  } catch (error) {
+    ElMessage.error('取消日程失败:', error)
   }
 }
 
@@ -631,8 +631,9 @@ const restoreSchedule = async (event_id) => {
     } else {
       await fetchSchedules()
     }
+    ElMessage.success('还原日程成功')
   } catch (error) {
-    console.error('还原日程失败:', error)
+    ElMessage.error('还原日程失败:', error)
   }
 }
 
@@ -710,7 +711,7 @@ const fetchSchedulesByDate = async () => {
     // 更新分组
     updateGroupedSchedules()
   } catch (error) {
-    console.error('加载日程失败:', error)
+    ElMessage.error('加载日程失败:', error)
   } finally {
     loading.value = false
   }
@@ -740,31 +741,28 @@ const fetchSchedules = async () => {
     // 更新分组
     updateGroupedSchedules()
   } catch (error) {
-    console.error('加载日程失败:', error)
+    ElMessage.error('加载日程失败:', error)
   } finally {
     loading.value = false
   }
 }
 
 const deleteSchedule = async (event_id) => {
-  if (confirm('确定要删除这个日程吗？')) {
-    try {
-      await scheduleApi.delete_schedule(user_token, event_id)
-      // 根据上次查询类型重新获取数据
-      if (lastQueryType.value === 'specific') {
-        await fetchSchedulesByDate()
-      } else {
-        await fetchSchedules()
-      }
-    } catch (error) {
-      console.error('删除失败:', error)
+  try {
+    await scheduleApi.delete_schedule(user_token, event_id)
+    // 根据上次查询类型重新获取数据
+    if (lastQueryType.value === 'specific') {
+      await fetchSchedulesByDate()
+    } else {
+      await fetchSchedules()
     }
+    ElMessage.success('删除成功')
+  } catch (error) {
+    ElMessage.error('删除失败:', error)
   }
 }
 
 const openEditDialog = (event) => {
-  console.log('编辑事件 ID:', event.event_id)
-
   // 填充编辑表单
   editForm.value = {
     event_id: event.event_id,
@@ -929,7 +927,7 @@ const submitEditForm = async () => {
 
     closeEditDialog()
   } catch (error) {
-    console.error('更新日程失败:', error)
+    ElMessage.error('更新日程失败:', error)
   }
 }
 

@@ -149,6 +149,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import teacherApi from '@/api/teacher.js'
 import * as XLSX from 'xlsx'
+import {ElMessage} from "element-plus";
 
 
 const authStore = useAuthStore()
@@ -213,7 +214,7 @@ const fetchTeacherClasses = async () => {
       }
     }
   } catch (error) {
-    console.error('获取班级列表失败:', error)
+    ElMessage.error('获取班级列表失败:', error)
     errorMessage.value = '获取班级列表失败，请稍后重试'
   } finally {
     isLoading.value = false
@@ -234,7 +235,7 @@ const fetchClassSubjects = async () => {
       }
     }
   } catch (error) {
-    console.error('获取科目列表失败:', error)
+    ElMessage.error('获取科目列表失败:', error)
     errorMessage.value = '获取科目列表失败，请稍后重试'
   } finally {
     isLoading.value = false
@@ -250,7 +251,7 @@ const fetchClassStudents = async () => {
       students.value = response.data
     }
   } catch (error) {
-    console.error('获取学生列表失败:', error)
+    ElMessage.error('获取学生列表失败:', error)
     errorMessage.value = '获取学生列表失败，请稍后重试'
   }
 }
@@ -271,7 +272,7 @@ const fetchClassScores = async () => {
       filteredScores.value = [...scores.value]
     }
   } catch (error) {
-    console.error('获取成绩列表失败:', error)
+    ElMessage.error('获取成绩列表失败:', error)
     errorMessage.value = '获取成绩列表失败，请稍后重试'
   } finally {
     isLoading.value = false
@@ -342,8 +343,9 @@ const saveScore = async () => {
 
     closeModal()
     await fetchClassScores()
+    ElMessage.success(isEditingScore.value ? '更新成绩成功' : '添加成绩成功')
   } catch (error) {
-    console.error(isEditingScore.value ? '更新成绩失败:' : '添加成绩失败:', error)
+    ElMessage.error(isEditingScore.value ? '更新成绩失败:' : '添加成绩失败:', error)
     errorMessage.value = isEditingScore.value ? '更新成绩失败' : '添加成绩失败'
   }
 }
@@ -364,16 +366,23 @@ const deleteScore = async () => {
     await fetchClassScores()
     showDeleteModal.value = false
     scoreToDelete.value = null
+    ElMessage.success("删除成绩成功")
   } catch (error) {
-    console.error('删除成绩失败:', error)
+    ElMessage.error('删除成绩失败:', error)
     errorMessage.value = '删除成绩失败'
   }
 }
 
-
+let sortByScoreType = false;
 
 const sortByScore = () => {
-  filteredScores.value.sort((a, b) => b.score - a.score)
+  sortByScoreType = !sortByScoreType
+  if(sortByScoreType){
+    filteredScores.value.sort((a, b) => b.score - a.score)
+  } else {
+    filteredScores.value.sort((b, a) => b.score - a.score)
+  }
+
 }
 
 const filterScores = () => {
@@ -496,8 +505,9 @@ const importXlsx = () => {
 
         // Refresh data
         await fetchClassScores()
+        ElMessage.success('导入成功')
       } catch (error) {
-        console.error('导入失败:', error)
+        ElMessage.error('导入失败:', error)
         errorMessage.value = '导入失败，请检查文件格式'
       } finally {
         isLoading.value = false
